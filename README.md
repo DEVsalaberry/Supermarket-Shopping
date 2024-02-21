@@ -1,118 +1,111 @@
-# SYNOPSIS
-A sync prompt for node. very simple. no C++ bindings and no bash scripts.
+SINOPSE
+Um prompt de sincronização para Node. Muito simples. Sem bindings em C++ e sem scripts bash.
 
-Works on Linux, OS X and Windows.
+Funciona no Linux, OS X e Windows.
 
-# BASIC MODE
-```js
+MODO BÁSICO
 
+javascript
+Copy code
 var prompt = require('prompt-sync')();
 //
-// get input from the user.
+// Obter entrada do usuário.
 //
-var n = prompt('How many more times? ');
-```
-# WITH HISTORY
+var n = prompt('Quantas vezes mais? ');
+COM HISTÓRICO
+O histórico é um extra opcional, para usar simplesmente instale o plugin de histórico.
 
-History is an optional extra, to use simply install the history plugin. 
-
-```sh
+bash
+Copy code
 npm install --save prompt-sync-history
-```
-
-```js
+javascript
+Copy code
 var prompt = require('prompt-sync')({
-  history: require('prompt-sync-history')() //open history file
+  history: require('prompt-sync-history')() //abre arquivo de histórico
 });
-//get some user input
+//obter entrada do usuário
 var input = prompt()
-prompt.history.save() //save history back to file
-```
+prompt.history.save() //salvar histórico de volta ao arquivo
+Consulte o módulo prompt-sync-history para opções ou bifurque-o para comportamento personalizado.
 
-See the [prompt-sync-history](http://npm.im/prompt-sync-history) module
-for options, or fork it for customized behaviour. 
+API
 
-# API
+javascript
+Copy code
+require('prompt-sync')(config) => prompt
+Retorna uma instância da função de prompt. Aceita opções de configuração com as seguintes propriedades possíveis:
 
-## `require('prompt-sync')(config) => prompt` 
+sigint: O padrão é falso. Um ^C pode ser pressionado durante o processo de entrada para abortar a entrada de texto. Se sigint for falso, o prompt retorna null. Se sigint for verdadeiro, o ^C será tratado da maneira tradicional: como um sinal SIGINT, fazendo com que o processo saia com o código 130.
 
-Returns an instance of the `prompt` function.
-Takes `config` option with the following possible properties
+eot: O padrão é falso. Um ^D pressionado como o primeiro caractere de uma linha de entrada faz com que o prompt-sync ecoe a saída e saia do processo com o código 0.
 
-`sigint`: Default is `false`. A ^C may be pressed during the input process to abort the text entry. If sigint it `false`, prompt returns `null`. If sigint is `true` the ^C will be handled in the traditional way: as a SIGINT signal causing process to exit with code 130.
+autocomplete: Uma função de completer que será chamada quando o usuário digitar TAB para permitir a autocompletar. Ele recebe uma string como argumento e retorna uma matriz de strings que são possíveis correspondências para a conclusão. Uma matriz vazia é retornada se não houver correspondências.
 
-`eot`: Default is `false`. A ^D pressed as the first character of an input line causes prompt-sync to echo `exit` and exit the process with code 0.
+history: Aceita um objeto que fornece uma "interface de histórico", veja prompt-sync-history para um exemplo.
 
-`autocomplete`: A completer function that will be called when user enters TAB to allow for autocomplete. It takes a string as an argument an returns an array of strings that are possible matches for completion. An empty array is returned if there are no matches.
+javascript
+Copy code
+prompt(ask, value, opts)
+ask é o rótulo do prompt, value é o valor padrão na ausência de uma resposta.
 
-`history`: Takes an object that supplies a "history interface", see [prompt-sync-history](http://npm.im/prompt-sync-history) for an example.
+O argumento opts também pode estar na primeira ou segunda posição do parâmetro.
 
-## `prompt(ask, value, opts)`
+Opts pode ter as seguintes propriedades:
 
-`ask` is the label of the prompt, `value` is the default value
-in absence of a response. 
+echo: O padrão é '*'. Se definido, a senha será mascarada com o caractere especificado. Para entrada oculta, defina echo para '' (ou use prompt.hide).
 
-The `opts` argument can also be in the first or second parameter position.
+autocomplete: Substitui a função de autocompletar da instância para permitir a autocompletar personalizada de um prompt específico.
 
-Opts can have the following properties
+value: Mesmo que o parâmetro value, o valor padrão para o prompt. Se opts estiver na terceira posição, essa propriedade não substituirá o parâmetro value.
 
-`echo`: Default is `'*'`. If set the password will be masked with the specified character. For hidden input, set echo to `''` (or use `prompt.hide`).
+ask: Mesmo que o parâmetro value, o rótulo do prompt. Se opts não estiver na primeira posição, o parâmetro ask não será substituído por essa propriedade.
 
-`autocomplete`: Overrides the instance `autocomplete` function to allow for custom 
-autocompletion of a particular prompt.
+javascript
+Copy code
+prompt.hide(ask)
+Método de conveniência para criar um prompt padrão de senha oculta, é o mesmo que prompt(ask, {echo: ''}).
 
-`value`: Same as the `value` parameter, the default value for the prompt. If `opts`
-is in the third position, this property will *not* overwrite the `value` parameter.
+EDIÇÃO DE LINHA
+A edição de linha está ativada no modo não oculto. (use setas para cima/baixo para histórico e backspace e setas esquerda/direita para edição)
 
-`ask`: Sames as the `value` parameter. The prompt label. If `opts` is not in the first position, the `ask` parameter will *not* be overridden by this property.
+O histórico não é definido ao usar o modo oculto.
 
-## `prompt.hide(ask)`
+EXEMPLOS
 
-Convenience method for creating a standard hidden password prompt, 
-this is the same as `prompt(ask, {echo: ''})`
+javascript
+Copy code
+//básico:
+console.log(require('prompt-sync')()('conte-me algo sobre você: '))
 
+var prompt = require('prompt-sync')({
+  history: require('prompt-sync-history')(),
+  autocomplete: complete(['hello1234', 'he', 'hello', 'hello12', 'hello123456']),
+  sigint: false
+});
 
-# LINE EDITING
-Line editing is enabled in the non-hidden mode. (use up/down arrows for history and backspace and left/right arrows for editing)
+var value = 'frank';
+var name = prompt('digite o nome: ', value);
+console.log('digite a senha *');
+var pw = prompt({echo: '*'});
+var pwb = prompt('digite a senha oculta (ou não): ', {echo: '', value: '*pwb padrão*'})
+var pwc = prompt.hide('digite outra senha oculta: ')
+var autocompleteTest = prompt('autocompletar personalizado: ', {
+  autocomplete: complete(['bye1234', 'by', 'bye12', 'bye123456'])
+});
 
-History is not set when using hidden mode.
+prompt.history.save();
 
-# EXAMPLES
+console.log('\nNome: %s\nSenha *: %s\nSenha oculta: %s\nOutra senha oculta: %s', name, pw, pwb, pwc);
+console.log('autocompletar 2: ', autocompleteTest);
 
-```js
-  //basic:
-  console.log(require('prompt-sync')()('tell me something about yourself: '))
-
-  var prompt = require('prompt-sync')({
-    history: require('prompt-sync-history')(),
-    autocomplete: complete(['hello1234', 'he', 'hello', 'hello12', 'hello123456']),
-    sigint: false
-  });
-
-  var value = 'frank';
-  var name = prompt('enter name: ', value);
-  console.log('enter echo * password');
-  var pw = prompt({echo: '*'});
-  var pwb = prompt('enter hidden password (or don\'t): ', {echo: '', value: '*pwb default*'})
-  var pwc = prompt.hide('enter another hidden password: ')
-  var autocompleteTest = prompt('custom autocomplete: ', {
-    autocomplete: complete(['bye1234', 'by', 'bye12', 'bye123456'])
-  });
-
-  prompt.history.save();
-
-  console.log('\nName: %s\nPassword *: %s\nHidden password: %s\nAnother Hidden password: %s', name, pw, pwb, pwc);
-  console.log('autocomplete2: ', autocompleteTest);
-
-  function complete(commands) {
-    return function (str) {
-      var i;
-      var ret = [];
-      for (i=0; i< commands.length; i++) {
-        if (commands[i].indexOf(str) == 0)
-          ret.push(commands[i]);
-      }
-      return ret;
-    };
+function complete(commands) {
+  return function (str) {
+    var i;
+    var ret = [];
+    for (i=0; i< commands.length; i++) {
+      if (commands[i].indexOf(str) == 0)
+        ret.push(commands[i]);
+    }
+    return ret;
   };
-```
+};
